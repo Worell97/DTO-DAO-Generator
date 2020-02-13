@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2019/12/16 15:21:36.000.355,=C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2019/12/16 15:33:58.000.420,C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\DTOGenerator.pas</Transaction>
+    <Transaction>2019/12/16 15:33:58.000.420,C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\Unit1.dfm=C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\DTOGenerator.dfm</Transaction>
+    <Transaction>2019/12/16 17:58:03.000.554,C:\Users\oscar.filho\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Project1.dproj</Transaction>
+    <Transaction>2019/12/17 14:33:15.000.393,C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Generator.dproj=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Project1.dproj</Transaction>
+    <Transaction>2019/12/17 16:36:29.000.550,=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Unit1.pas</Transaction>
+    <Transaction>2019/12/17 16:37:04.000.143,=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Unit2.pas</Transaction>
+    <Transaction>2019/12/17 16:37:23.000.075,=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Unit1.pas</Transaction>
+    <Transaction>2019/12/17 16:44:22.000.235,C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\DAOGenerator.pas=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\Unit1.pas</Transaction>
+    <Transaction>2019/12/18 08:04:56.000.866,=C:\Users\oscar.filho\OneDrive\ProjetoMapeamento\DTOGenerator.pas</Transaction>
+  </Transactions>
+</BorlandProject>
