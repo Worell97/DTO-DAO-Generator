@@ -232,9 +232,9 @@ begin
       LColuna := AQueryColunas.FieldByName('coluna').AsString;
       AQueryColunas.Next;
       if AQueryColunas.Eof then
-        AArquivo.Add('          '+QuotedStr('  '+LColuna)+'+')
+        AArquivo.Add('          '+QuotedStr('  '+LColuna)+' +')
       else
-        AArquivo.Add('          '+QuotedStr('  '+LColuna+',')+'+');
+        AArquivo.Add('          '+QuotedStr('  '+LColuna+' ,')+' +');
     end;
     AArquivo.Add('          '+QuotedStr('FROM ')+' +');
     AArquivo.Add('          '+QuotedStr('   '+AQueryTabelas.FieldByName('tabela').AsString+' ')+' ;');

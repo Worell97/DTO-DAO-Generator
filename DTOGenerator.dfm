@@ -156,6 +156,7 @@ object Form1: TForm1
         Width = 238
         Height = 21
         Anchors = [akLeft, akTop, akRight]
+        CharCase = ecUpperCase
         TabOrder = 4
       end
       object DBGerarDAO: TCheckBox

@@ -110,6 +110,8 @@ type
   private
     { Private declarations }
     NomeTabela : System.UnicodeString;
+    function Gerar() : Boolean;
+
     procedure GerarCabecalho(AArquivo : TStringList; AQueryTabelas, AQueryColunas : TFDQuery);
     procedure GerarClassItem(AArquivo : TStringList; AQueryTabelas, AQueryColunas : TFDQuery);
     procedure GerarFields(AArquivo : TStringList; AQueryColunas : TFDQuery);
@@ -124,6 +126,7 @@ type
     procedure GerarFunctions(AArquivo : TStringList; AQueryTabelas, AQueryColunas : TFDQuery);
     procedure GerarInternalClear(AArquivo : TStringList; AQueryTabelas, AQueryColunas : TFDQuery);
     procedure GerarProcedures(AArquivo : TStringList; AQueryTabelas, AQueryColunas : TFDQuery);
+    procedure Clear();
 
     function ValidaCampos(): Boolean;
   public
@@ -143,13 +146,11 @@ uses
 procedure TForm1.FormCreate(Sender: TObject);
 begin
 {$IFDEF DEBUG}
-  SbOrigem.Text := 'C:\Ecosis\dados\ECODADOS_FATURA.ECO';
+  SbOrigem.Text := 'C:\Ecosis\dados\ECODADOS.ECO';
   Tipo.Text := 'FireBird';
   EdtUser.Text := 'sysdba';
   EdtPassword.Text := 'masterkey';
-  CBTabelas.Text := 'TBANCONTA';
   SbDestino.Text := 'C:\Projetos\Templates';
-  SetParametrosConexao(FDConnection);
 {$ENDIF}
 end;
 
@@ -158,6 +159,67 @@ begin
   Tipo.Items.Add('FireBird');
   Tipo.Items.Add('PostgreSQL');
   SbOrigem.SetFocus;
+end;
+
+function TForm1.Gerar: Boolean;
+var
+  LQueryTabelas: TFDQuery;
+  LQueryColunas: TFDQuery;
+  LArquivoDTO,
+  LArquivoDAO : TStringList;
+  LDaoGenerator : TDAOGenerator;
+begin
+  try
+    LDaoGenerator := TDAOGenerator.Create;
+    LQueryTabelas := TFDQuery.Create(nil);
+
+    if Trim(CBTabelas.Text) <> '' then
+    begin
+      LQueryTabelas.SQL.Add(SelectTabelas + whereCustom);
+      LQueryTabelas.Params.ParamByName('Tabela').AsString := CBTabelas.Text;
+    end
+    else
+       LQueryTabelas.SQL.Add(SelectTabelas+wherePadrao);
+
+    LQueryTabelas.Connection := FDConnection;
+
+    if LQueryTabelas.OpenOrExecute then
+    begin
+      LQueryTabelas.First;
+      while not(LQueryTabelas.EOF) do
+      begin
+        LArquivoDTO := TStringList.Create;
+        NomeTabela := Copy(LQueryTabelas.FieldByName('Tabela').AsString, 2, Length(LQueryTabelas.FieldByName('Tabela').AsString));
+        NomeTabela := Copy(NomeTabela,0,4)+LowerCase(Copy(NomeTabela,5,Length(NomeTabela)));
+        if Trim(NomeTabela) <>'' then
+        begin
+          LQueryColunas := TFDQuery.Create(nil);
+          LQueryColunas.SQL.Add(SelectColunas);
+          LQueryColunas.ParamByName('Tabela').Value := LQueryTabelas.FieldByName('Tabela').AsString;
+          LQueryColunas.Connection := FDConnection;
+          if LQueryColunas.OpenOrExecute then
+          begin
+            Self.GerarCabecalho(LArquivoDTO, LQueryTabelas, LQueryColunas);
+            Self.GerarImplementation(LArquivoDTO, LQueryTabelas, LQueryColunas);
+            if DBGerarDAO.Checked then
+            begin
+              LArquivoDAO := TStringList.Create;
+              LDaoGenerator.GerarDAO(LArquivoDAO, LQueryTabelas, LQueryColunas, FDConnection);
+              LArquivoDAO.SaveToFile(SbDestino.Text+'\EcoDAO.'+NomeTabela+'.pas');
+            end;
+          end;
+          LArquivoDTO.SaveToFile(SbDestino.Text+'\EcoDTO.'+NomeTabela+'.pas');
+        end;
+        LQueryTabelas.Next;
+        FreeAndNil(LArquivoDAO);
+        FreeAndNil(LArquivoDTO);
+      end;
+    end;
+    Showmessage('Concluído');
+    Result := True;
+  except
+    raise Exception.Create('Erro ao gerar DTO');
+  end;
 end;
 
 procedure TForm1.GerarCabecalho(AArquivo: TStringList; AQueryTabelas, AQueryColunas: TFDQuery);
@@ -232,7 +294,7 @@ procedure TForm1.GerarConstructor(AArquivo: TStringList; AQueryTabelas,
   AQueryColunas: TFDQuery);
 begin    
   try
-    AArquivo.Add('procedure TDto'+NomeTabela+'.Create(const AOwner: EcoRT.Objects.TErtPersistent);');
+    AArquivo.Add('constructor TDto'+NomeTabela+'.Create(const AOwner: EcoRT.Objects.TErtPersistent);');
     AArquivo.Add('begin');
     AArquivo.Add('  Self.InternalClear();');
     AArquivo.Add('  inherited Create(AOwner);');
@@ -454,79 +516,30 @@ end;
 
 procedure TForm1.BtnCancelarClick(Sender: TObject);
 begin
-  SbOrigem.Text  := '';
-  Tipo.Text        := '';
-  EdtUser.Text     := '';
-  EdtPassword.Text := '';
-  SbDestino.Text  := '';
-  SbOrigem.SetFocus;
+	Clear;
 end;
 
 procedure TForm1.BtnGerarClick(Sender: TObject);
-var
-  LQueryTabelas: TFDQuery;
-  LQueryColunas: TFDQuery;
-  LArquivoDTO,
-  LArquivoDAO : TStringList;
-  LDaoGenerator : TDAOGenerator;
 begin
   if ValidaCampos then
   begin
-      try
-        LDaoGenerator := TDAOGenerator.Create;
-        LQueryTabelas := TFDQuery.Create(nil);
-
-        if Trim(CBTabelas.Text) <> '' then
-        begin
-          LQueryTabelas.SQL.Add(SelectTabelas + whereCustom);
-          LQueryTabelas.Params.ParamByName('Tabela').AsString := CBTabelas.Text;
-        end
-        else
-           LQueryTabelas.SQL.Add(SelectTabelas+wherePadrao);
-
-        LQueryTabelas.Connection := FDConnection;
-
-        if LQueryTabelas.OpenOrExecute then
-        begin
-          LQueryTabelas.First;
-          while not(LQueryTabelas.EOF) do
-          begin
-            LArquivoDTO := TStringList.Create;
-            NomeTabela := Copy(LQueryTabelas.FieldByName('Tabela').AsString, 2, Length(LQueryTabelas.FieldByName('Tabela').AsString));
-            NomeTabela := Copy(NomeTabela,0,4)+LowerCase(Copy(NomeTabela,5,Length(NomeTabela)));
-            if Trim(NomeTabela) <>'' then
-            begin
-              LQueryColunas := TFDQuery.Create(nil);
-              LQueryColunas.SQL.Add(SelectColunas);
-              LQueryColunas.ParamByName('Tabela').Value := LQueryTabelas.FieldByName('Tabela').AsString;
-              LQueryColunas.Connection := FDConnection;
-              if LQueryColunas.OpenOrExecute then
-              begin
-                Self.GerarCabecalho(LArquivoDTO, LQueryTabelas, LQueryColunas);
-                Self.GerarImplementation(LArquivoDTO, LQueryTabelas, LQueryColunas);
-                if DBGerarDAO.Checked then
-                begin
-                  LArquivoDAO := TStringList.Create;
-                  LDaoGenerator.GerarDAO(LArquivoDAO, LQueryTabelas, LQueryColunas, FDConnection);
-                  LArquivoDAO.SaveToFile(SbDestino.Text+'\EcoDAO.'+NomeTabela+'.pas');
-                end;
-              end;
-              LArquivoDTO.SaveToFile(SbDestino.Text+'\EcoDTO.'+NomeTabela+'.pas');
-            end;
-            LQueryTabelas.Next;
-            FreeAndNil(LArquivoDAO);
-            FreeAndNil(LArquivoDTO);
-          end;
-        end;
-          Showmessage('Concluído');
-      except
-        raise Exception.Create('Erro ao gerar DTO');
-      end;
+  	if Gerar then
+    	Clear();
   end else
   begin
     ShowMessage('Preencha os campos corretamente');
     Exit;
   end;
+end;
+
+procedure TForm1.Clear;
+begin
+  SbOrigem.Text    := '';
+  Tipo.Text        := '';
+  EdtUser.Text     := '';
+  EdtPassword.Text := '';
+  SbDestino.Text   := '';
+  SbOrigem.SetFocus;
 end;
 
 procedure TForm1.EdtPasswordExit(Sender: TObject);
